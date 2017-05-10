@@ -3,6 +3,7 @@ import copy
 import tensorflow as tf
 from game_logic import State, next_state
 import itertools
+import numpy as np
 
 EMBED_DIM = 10
 SAMPLES = 50
@@ -47,15 +48,30 @@ class AiPlayer(object):
 
         return ret
 
+    def get_play_probability(self, player, state):
+
+        prob = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        prob[random.choice(state.cards[player])] = 1.0
+    
+    
+        return prob
+    
     # internal function to sample a strategy and evaluate the score
     def sample(self, state, strategy):
 
         # play my moves in sequence
         for x in strategy:
+            moves = [0 for y in xrange(self.total_players)]
+            
+            # for each opponent
+            for player in xrange(self.total_players):
+                if player != self.my_index:
+                
+                    # play a move sample from what we think they will play
+                    play_probability = self.get_play_probability(player, state)
+                    moves[player] = np.random.choice(xrange(6), 1, play_probability)[0]
 
-            moves = [random.choice(y) for y in state.cards] # pick a random card, in each player possible cards. TODO : samples
             moves[self.my_index] = x
-
             state = next_state(state, moves)
 
         return state
@@ -88,7 +104,7 @@ class AiPlayer(object):
                 bestCard = x
 
         print("state {}".format(state))
-        print("playing card {}".format(bestCard))
+        print("AI playing card {}".format(bestCard))
 
         return bestCard
 

@@ -33,11 +33,24 @@ class Engine(object):
         for player in players:
             player.round_ended()
 
+        return state
+
 
 if __name__ == '__main__':
-    player1 = Player()
-    player2 = AiPlayer()
 
-    engine = Engine()
-    engine.start([player1, player2])
+    totals = [0,0]
+    
+    for i in xrange(1000):
+        player1 = Player()
+        player2 = AiPlayer()
+
+        engine = Engine()
+        ret = engine.start([player1, player2])
+
+        for x in xrange(2):
+            totals[x] = totals[x] + ret.score[x]
+
+        print "Totals: {}".format(totals)
+
+
     #    State(2)
