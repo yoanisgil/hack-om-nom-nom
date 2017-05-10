@@ -37,6 +37,9 @@ class State(object):
 
         return state
 
+    def __str__(self):
+        return str(self.cards) + str(self.score)
+
 
 def remove_cards(cards, moves):
     new_cards = []
