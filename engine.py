@@ -1,4 +1,4 @@
-from game_logic import State, new_state
+from game_logic import State, next_state
 from random_player import Player
 
 
@@ -27,7 +27,7 @@ class Engine(object):
             for player in players:
                 player.turn_ended(moves)
 
-            state = new_state(state, moves)
+            state = next_state(state, moves)
 
         for player in players:
             player.round_ended()
