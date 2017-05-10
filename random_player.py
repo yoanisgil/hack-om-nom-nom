@@ -1,11 +1,10 @@
 import random
-import tensorflow
 
 class Player(object):
     def __init__(self):
         pass
 
-    def init(self, index):
+    def init(self, index, total_players):
         self.my_index = index
         pass
 
