@@ -1,11 +1,11 @@
 import random
 import copy
 import tensorflow as tf
-from game_logic import State, new_state
+from game_logic import State, next_state
 import itertools
 
 EMBED_DIM = 10
-SAMPLES = 20
+SAMPLES = 2
 
 class Evaluator:
     def __init__(self):
@@ -41,9 +41,11 @@ class AiPlayer(object):
 
     def valueFromScore(self, score):
         if max(score) == score[self.my_index]:
-            return 1.0
+            ret = 1.0
         else:
-            return 0.0
+            ret = 0.0
+
+        return ret
 
     # internal function to sample a strategy and evaluate the score
     def sample(self, state, strategy):
@@ -54,7 +56,9 @@ class AiPlayer(object):
             moves = [random.choice(y) for y in state.cards] # pick a random card, in each player possible cards. TODO : samples
             moves[self.my_index] = x
 
-            state = new_state(state, moves)
+            state = next_state(state, moves)
+
+        return state
 
     # API call to play a move
     def play(self, state, cards_to_play):
@@ -67,7 +71,7 @@ class AiPlayer(object):
         for strategy in strategies:
             for i in xrange(SAMPLES):
                 next_state = copy.copy(state)
-                self.sample(next_state, strategy)
+                next_state = self.sample(next_state, strategy)
 
             # the value of the strategy starting by each move is a function of the score
             strategy_value[strategy[0]] = strategy_value[strategy[0]] + self.valueFromScore(next_state.score)
@@ -77,7 +81,7 @@ class AiPlayer(object):
         bestCard = cards_to_play[0]
 
         for x in xrange(6):
-            if strategy_value_count > 0:
+            if strategy_value_count[x] > 0:
                 strategy_value[x] = strategy_value[x] / strategy_value_count[x]
             if strategy_value[x] > bestValue:
                 bestValue = strategy_value[x]
