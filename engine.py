@@ -1,17 +1,5 @@
+from game_logic import State, new_state
 from random_player import Player
-
-
-class State(object):
-    def __init__(self, num_players):
-        self.payouts = 9 * [0]
-        self.cards = [range(0, 6)] * num_players
-        self.score = [0] * num_players
-
-        # TODO: Throw the dice
-
-    @staticmethod
-    def new_state(old_state, moves):
-        return old_state
 
 
 class Engine(object):
@@ -22,7 +10,7 @@ class Engine(object):
         state = State(len(players))
 
         for player_index, player in enumerate(players):
-            player.init(player_index)
+            player.init(player_index, len(players))
 
         for i in range(0, 6):
             moves = []
@@ -39,7 +27,7 @@ class Engine(object):
             for player in players:
                 player.turn_ended(moves)
 
-            state = State.new_state(state, moves)
+            state = new_state(state, moves)
 
         for player in players:
             player.round_ended()
@@ -51,3 +39,4 @@ if __name__ == '__main__':
 
     engine = Engine()
     engine.start([player1, player2])
+    #    State(2)
