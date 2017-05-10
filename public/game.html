@@ -1,0 +1,64 @@
+<html>
+	<head>
+		<title>Om Nom Nom</title>
+		<link rel="stylesheet" href="https://unpkg.com/tachyons@4.7.0/css/tachyons.min.css"/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	</head>
+	<body>
+		<div class="mw9 center ph3-ns">
+			<div class="cf ph2-ns">
+				<div class="fl w-100 w-third-ns pa2">
+					<div class="gametile outline bg-white pv4" data-id="0">
+						Cat
+					</div>
+					<div class="gametile outline bg-white pv4" data-id="3">
+						Rat
+					</div>
+					<div class="gametile outline bg-white pv4" data-id="6">
+						Cheese
+					</div>
+				</div>
+				<div class="fl w-100 w-third-ns pa2">
+					<div class="gametile outline bg-white pv4" data-id="1">
+						Hedgehog
+					</div>
+					<div class="gametile outline bg-white pv4" data-id="4">
+						Frog
+					</div>
+					<div class="gametile outline bg-white pv4" data-id="7">
+						Fly
+					</div>
+				</div>
+				<div class="fl w-100 w-third-ns pa2">
+					<div class="gametile outline bg-white pv4" data-id="2">
+						Wolf
+					</div>
+					<div class="gametile outline bg-white pv4" data-id="5">
+						Rabbit
+					</div>
+					<div class="gametile outline bg-white pv4" data-id="8">
+						Carrot
+					</div>
+				</div>
+			</div>
+		</div>
+	<script>
+		$(document).ready(function() {
+			var state = null;
+			$.ajax({
+				url: "/init_session", 
+				type: "POST",
+				data: JSON.stringify({ num_players: 2 }), 
+				contentType: "application/json; charset=utf-8",
+				success: function(data) {
+					state = data;
+				}
+			});
+
+			$( ".gametile" ).on( "click", function( event ) {
+				alert($(this).attr("data-id"));
+			});
+		})
+	</script>
+	</body>
+</html>

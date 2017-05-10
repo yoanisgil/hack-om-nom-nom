@@ -1,8 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from web_game import WebGameEngine
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 game_engine = WebGameEngine()
+
+@app.route('/')
+def index():
+    return send_from_directory('public/', 'game.html') 
 
 
 @app.route('/init_session', methods=['POST'])
