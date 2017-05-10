@@ -38,6 +38,7 @@ class Engine(object):
 if __name__ == '__main__':
 
     totals = [0,0]
+    wins = [0,0]
     
     for i in xrange(1000):
         player1 = Player()
@@ -48,8 +49,10 @@ if __name__ == '__main__':
 
         for x in xrange(2):
             totals[x] = totals[x] + ret.score[x]
+            if ret.score[x] == max(ret.score):
+                wins[x] = wins[x] + 1
 
-        print "Totals: {}".format(totals)
+        print "Totals: {}, wins: {}".format(totals, wins)
 
 
     #    State(2)
