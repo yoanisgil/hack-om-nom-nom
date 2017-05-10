@@ -2,6 +2,7 @@ from game_logic import State, next_state
 from random_player import Player
 from ai_player import AiPlayer
 
+
 class Engine(object):
     def __init__(self):
         pass
