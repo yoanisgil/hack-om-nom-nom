@@ -16,7 +16,7 @@ class Player(object):
         print("Playing {}".format(card))
         return card
 
-    def was_played(self):
+    def turn_ended(self):
         pass
 
     def round_ended(self):
