@@ -11,7 +11,7 @@ class State(object):
 
     @staticmethod
     def new_state(old_state, moves):
-        return []
+        return old_state
 
 
 class Engine(object):
@@ -20,6 +20,9 @@ class Engine(object):
 
     def start(self, players):
         state = State(len(players))
+
+        for player_index, player in enumerate(players):
+            player.init(player_index)
 
         for i in range(0, 6):
             moves = []
@@ -33,8 +36,13 @@ class Engine(object):
 
                 moves.append(card)
 
+            for player in players:
+                player.turn_ended(moves)
+
             state = State.new_state(state, moves)
 
+        for player in players:
+            player.round_ended()
 
 
 if __name__ == '__main__':
