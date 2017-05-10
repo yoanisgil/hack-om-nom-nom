@@ -5,7 +5,7 @@ from game_logic import State, next_state
 import itertools
 
 EMBED_DIM = 10
-SAMPLES = 2
+SAMPLES = 50
 
 class Evaluator:
     def __init__(self):
@@ -87,6 +87,7 @@ class AiPlayer(object):
                 bestValue = strategy_value[x]
                 bestCard = x
 
+        print("state {}".format(state))
         print("playing card {}".format(bestCard))
 
         return bestCard
