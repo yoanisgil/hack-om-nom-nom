@@ -8,7 +8,7 @@ class Player(object):
     def init(self, index):
         self.my_index = index
         pass
-    
+
     def play(self, state, cards_to_play):
         card = random.choice(cards_to_play)
 
@@ -16,9 +16,8 @@ class Player(object):
         print("Playing {}".format(card))
         return card
 
-    def turn_ended(self):
+    def turn_ended(self, moves):
         pass
 
     def round_ended(self):
         pass
-

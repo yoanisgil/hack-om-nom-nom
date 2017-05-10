@@ -11,7 +11,7 @@ class State(object):
 
     @staticmethod
     def new_state(old_state, moves):
-        return []
+        return old_state
 
 
 class Engine(object):
