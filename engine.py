@@ -1,6 +1,6 @@
 from game_logic import State, next_state
 from random_player import Player
-
+from ai_player import AiPlayer
 
 class Engine(object):
     def __init__(self):
@@ -35,7 +35,7 @@ class Engine(object):
 
 if __name__ == '__main__':
     player1 = Player()
-    player2 = Player()
+    player2 = AiPlayer()
 
     engine = Engine()
     engine.start([player1, player2])
