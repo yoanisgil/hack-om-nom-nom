@@ -38,7 +38,7 @@ class State(object):
         return state
 
     def __str__(self):
-        return str(self.cards) + str(self.score)
+        return "cards {}, score {}, dices {}".format(self.cards, self.score, self.dices_distribution)
 
 
 def remove_cards(cards, moves):
