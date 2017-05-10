@@ -13,6 +13,7 @@ class Player(object):
         card = random.choice(cards_to_play)
 
         print("Payouts are {}".format(state.payouts))
+        print("State.cards is {}".format(state.cards))
         print("Playing {}".format(card))
         return card
 
