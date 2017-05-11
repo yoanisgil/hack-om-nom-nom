@@ -11,7 +11,6 @@ class Player(object):
     def play(self, state, cards_to_play):
         card = random.choice(cards_to_play)
 
-        print("Random playing {}".format(card))
         return card
 
     def turn_ended(self, moves):
@@ -39,7 +38,6 @@ class GreedyPlayer(object):
                 best_score = value
                 best = i
 
-        print("Random playing {}".format(best))
         return best
 
     def turn_ended(self, moves):
@@ -79,7 +77,6 @@ class GreedyBastardPlayer(object):
                     best = i
                     values[i] = 0
 
-        print("Random playing {}".format(best))
         return best
 
     def turn_ended(self, moves):

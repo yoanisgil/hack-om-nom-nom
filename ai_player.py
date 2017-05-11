@@ -61,8 +61,9 @@ class AiPlayer(object):
 
     # init the AI player
     def init(self, index, total_players):
-        print("Init")
         self.learn_strat = False
+        self.maximize_score = False
+
         self.my_index = index
         self.total_players = total_players
 
@@ -79,15 +80,16 @@ class AiPlayer(object):
         self.count = 0
 
 #        self.saver.restore(self.sess, "model1.ckpt")
-        print("Model restored.")
 
     def value_from_score(self, score):
-        return score[self.my_index]
-#        if max(score) == score[self.my_index]:
-#            ret = 1.0
-#        else:
-#            ret = 0.0
-#        return ret
+        if self.maximize_score:
+            return score[self.my_index]
+        else:
+            if max(score) == score[self.my_index]:
+                ret = 1.0
+            else:
+                ret = 0.0
+            return ret
 
     def get_input_from_state(self, player_index, state):
         inputs = [0.0 for i in xrange(12)]
@@ -110,19 +112,9 @@ class AiPlayer(object):
             prob = (p0[0].tolist()[0])
         else:
         
-            payouts = [0.,0.,0.,0.,0.,0.]
+            prob = [0.,0.,0.,0.,0.,0.]
             for i in xrange(6):
-                payouts[i] = inputs[0, i + 6] * inputs[0, i]
-            
-            payouts[3] = payouts[3] * 2
-            payouts[4] = payouts[4] * 2
-            payouts[5] = payouts[5] * 2
-            
-            if player_index == 1: #TODO HACK HACK HACK
-                prob = [(1. if payouts[i] == max(payouts) else 0.) for i in xrange(6)]
-            else:
-                prob = [1.,1.,1.,1.,1.,1.]
-            
+                prob[i] = inputs[0, i + 6] * inputs[0, i]
 
         sum = 0.0
 
@@ -206,13 +198,6 @@ class AiPlayer(object):
                 
         bestCard = np.random.choice(6, 1, p=strategy_value)[0]
 
-
-        print("state {}".format(state))
-        for i in xrange(self.total_players):
-            if i != self.my_index:
-                print("AI believes player {} would play with distribution {}".format(i, self.get_play_probability(i, state)))
-        print("AI playing card {}".format(bestCard))
-
         return bestCard
 
     def turn_ended(self, moves):
@@ -233,7 +218,7 @@ class AiPlayer(object):
 
     def round_ended(self):
 
-        if self.count % 100 == 0:
+        if self.learn_strat and self.count % 100 == 0:
             save_path = self.saver.save(self.sess, "model" + str(self.count/100) + ".ckpt")
             print("Model saved in file: %s" % save_path)
         self.count = self.count + 1
