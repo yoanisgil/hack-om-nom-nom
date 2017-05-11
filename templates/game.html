@@ -3,6 +3,7 @@
     <title>Om Nom Nom</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.7.0/css/tachyons.min.css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="http://spin.js.org/spin.min.js"></script>
     <style>
         #board {
             text-align: center;
@@ -130,6 +131,7 @@
 
 			$("#card-list article").on("click", function (event) {
 				event.preventDefault();
+
 				var card_id = parseInt($(this).attr("data-id"));
 				if(card_id < 0 || card_id > 5) {
 					alert("You can't play here!");
@@ -139,6 +141,9 @@
 					alert('You already played there!');
 					return;
 				}
+
+				var spinner = new Spinner().spin()
+				$(this).append(spinner.el)
 
 				$.ajax({
 					url: "/next_move",
@@ -151,6 +156,9 @@
 					success: state_handler,
 					error: function() {
 						start_game();
+					},
+					complete: function() {
+						spinner.stop();
 					}
 				});
 			});
@@ -224,12 +232,12 @@
         else {
           player_wins += 1;
         }
-        win_percentage = player_wins / ai_wins;
+        win_percentage = player_wins / (player_wins + ai_wins);
         player_score += scores[2];
         $('#total-score').text(player_score);
         $('#ai-wins').text(ai_wins);
         $('#player-wins').text(player_wins);
-        $('#win-percentage').text(win_percentage);
+        $('#win-percentage').text(win_percentage.toFixed(2));
 			}
 
 			function display_player_moves(moves) {
