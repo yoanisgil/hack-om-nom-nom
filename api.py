@@ -4,9 +4,10 @@ from web_game import WebGameEngine
 app = Flask(__name__, static_url_path='')
 game_engine = WebGameEngine()
 
+
 @app.route('/')
 def index():
-    return send_from_directory('public/', 'game.html') 
+    return send_from_directory('public/', 'game.html')
 
 
 @app.route('/init_session', methods=['POST'])
