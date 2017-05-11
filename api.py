@@ -41,7 +41,7 @@ def next_move():
     if not game_engine.has_next_move(session_id):
         return jsonify({'error': 'Game has ended'}), 400
 
-    session = game_engine.next_move(session_id, json_request['card_index'])
+    session = game_engine.next_move(session_id, int(json_request['card_index']))
 
     return jsonify(session.to_json())
 
