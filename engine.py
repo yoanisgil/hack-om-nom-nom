@@ -38,17 +38,18 @@ class Engine(object):
 
 if __name__ == '__main__':
 
-    totals = [0,0]
-    wins = [0,0]
+    totals = [0,0,0]
+    wins = [0,0,0]
     
     for i in xrange(1000):
         player1 = Player()
-        player2 = AiPlayer()
+        player2 = Player()
+        player3 = AiPlayer()
 
         engine = Engine()
-        ret = engine.start([player1, player2])
+        ret = engine.start([player1, player2, player3])
 
-        for x in xrange(2):
+        for x in xrange(3):
             totals[x] = totals[x] + ret.score[x]
             if ret.score[x] == max(ret.score):
                 wins[x] = wins[x] + 1
