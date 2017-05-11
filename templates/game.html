@@ -13,7 +13,7 @@
 					height: 100px;
 					margin-bottom: 1em;
 				}
-				
+
 				.dice {
 					display: inline-block;
 					width: 15px;
@@ -35,7 +35,8 @@
 					width: 15px;
 					height: 15px;
 					font-size: 0.75em;
-					color: #3e3e3e;
+					padding: 2px;
+					color: white;
 				}
     </style>
 </head>
@@ -69,15 +70,35 @@
 				</div>
 			</div>
 			<div class="fl w-20" id="score">
-				<h3>Score</h3>
-				<ul class="list pl0 measure center"></ul>
+				<div>
+					<h3>Score</h3>
+					<ul class="list pl0 measure center"></ul>
+				</div>
 			</div>
+			<article class="fr pa3" data-name="slab-stat">
+				<dl class="dib mr5">
+					<dd class="f6 f5-ns b ml0">Total Score</dd>
+					<dd id="total-score" class="f3 f2-ns b ml0">0</dd>
+				</dl>
+				<dl class="dib mr5">
+					<dd class="f6 f5-ns b ml0">Player Wins</dd>
+					<dd id="player-wins" class="f3 f2-ns b ml0">0</dd>
+				</dl>
+				<dl class="dib mr5">
+					<dd class="f6 f5-ns b ml0">AI Wins</dd>
+					<dd id="ai-wins" class="f3 f2-ns b ml0">0</dd>
+				</dl>
+				<dl class="dib mr5">
+					<dd class="f6 f5-ns b ml0">Win Percentage</dd>
+					<dd id="win-percentage" class="f3 f2-ns b ml0">N/A%</dd>
+				</dl>
+			</article>
 		</div>
 
 		<div id="card-list" class="db ma4">
 			<h1>Your cards:</h1>
 			{% for title, img_href in cards %}
-			<article class="grow dib mw5 mr2 pointer bg-white br3 pa3 mv3 ba b--black-10" data-id="{{ loop.index - 1 }}">
+			<article class="grow dib mw5 mr2 pointer bg-white br3 pa3 mv3 h7 ba b--black-10" data-id="{{ loop.index - 1 }}">
 				<div class="tc">
 					<img src="{{ img_href }}" class="br-100 h3 w3 dib ba b--black-05 pa2" title="Image of {{ title }}">
 					<h1 class="f4 mb2">{{ title }}</h1>
@@ -89,122 +110,160 @@
 	</div>
 <script>
     $(document).ready(function () {
-        var state = null;
-				var player_colors = [ 'bg-light-yellow', 'bg-green', 'bg-light-purple' ]
-				var player_type = [ 'AI', 'AI', 'Human' ]
+			var state = null;
+			var player_colors = [ 'bg-light-yellow', 'bg-green', 'bg-light-purple' ]
+			var player_type = [ 'AI', 'AI', 'Human' ]
+			var player_score = 0;
+			var player_wins = 0;
+			var ai_wins = 0;
+			start_game();
 
-        $.ajax({
-            url: "/init_session",
-            type: "POST",
-            data: JSON.stringify({num_players: 2}),
-            contentType: "application/json; charset=utf-8",
-            success: state_handler
+			function start_game () {
+				$.ajax({
+					url: "/init_session",
+					type: "POST",
+					data: JSON.stringify({num_players: 2}),
+					contentType: "application/json; charset=utf-8",
+					success: state_handler
 				});
-				
-        $("#card-list article").on("click", function (event) {
-					event.preventDefault();
-					var card_id = parseInt($(this).attr("data-id"));
-					if(card_id < 0 || card_id > 5) {
-						alert("You can't play here!");
-						return;
-					}
-					if(state.player_moves.indexOf(card_id) >= 0) {
-						alert('You already played there!');
-						return;
-					}
+			}
 
-					$.ajax({
-						url: "/next_move",
-						type: "POST",
-						data: JSON.stringify({
-							session_id: state.session_id,
-							card_index: card_id
-						}),
-						contentType: "application/json; charset=utf-8",
-						success: state_handler,
-						error: function() {
-							alert("Game over!");
-						}
+			$("#card-list article").on("click", function (event) {
+				event.preventDefault();
+				var card_id = parseInt($(this).attr("data-id"));
+				if(card_id < 0 || card_id > 5) {
+					alert("You can't play here!");
+					return;
+				}
+				if(state.player_moves.indexOf(card_id) >= 0) {
+					alert('You already played there!');
+					return;
+				}
+
+				$.ajax({
+					url: "/next_move",
+					type: "POST",
+					data: JSON.stringify({
+						session_id: state.session_id,
+						card_index: card_id
+					}),
+					contentType: "application/json; charset=utf-8",
+					success: state_handler,
+					error: function() {
+						start_game();
+					}
+				});
+			});
+
+			function state_handler(data) {
+				var new_state = data;
+				display(new_state);
+				state = new_state;
+				if(state.player_moves.length == 6) {
+					alert("New Round!");
+					update_stats(state);
+					start_game();
+				}
+			}
+
+			function get_player_moves(old_cards, new_cards) {
+				var chosen_cards = [];
+				for(var player = 0; player < old_cards.length; player++) {
+					var card = old_cards[player].filter(function(e) {
+						return new_cards[player].indexOf(e) < 0 ;
 					});
-        });
-
-				function state_handler(data) {
-					var new_state = data;
-					display(new_state);
-					state = new_state;
+					chosen_cards.push(parseInt(card));
 				}
+				return chosen_cards;
+			}
 
-				function get_player_moves(old_cards, new_cards) {
-					var chosen_cards = [];
-					for(var player = 0; player < old_cards.length; player++) {
-						var card = old_cards[player].filter(function(e) { 
-							return new_cards[player].indexOf(e) < 0 ;
-						});
-						chosen_cards.push(parseInt(card));
-					}
-					return chosen_cards;
+			function display(new_state) {
+				if(state) { // Don't draw previous moves on first turn
+					var moves = get_player_moves(state.cards, new_state.cards);
+					display_last_moves(moves);
 				}
+				display_score(new_state.score);
+				display_dice(new_state.dices_distribution);
+				display_player_moves(new_state.player_moves);
+			}
 
-				function display(new_state) {
-					if(state) { // Don't draw previous moves on first turn
-						var moves = get_player_moves(state.cards, new_state.cards);
-						display_last_moves(moves);
-					}
-					display_score(new_state.score);
-					display_dice(new_state.dices_distribution);
-					display_player_moves(new_state.player_moves);
+			function display_score(score) {
+				var score_el = $('#score ul');
+				score_el.html("");
+				var render_score = function(idx) {
+					return '<li class="lh-copy pa3 ba bl-0 bt-0 br-0 ' + player_colors[i] + '">(' + player_type[i] + ') Player ' + (i + 1) + ': ' + score[i] + '</li>';
 				}
+				for(var i = 0; i < score.length; i++) {
+					score_el.append(render_score(i));
+				}
+			}
 
-				function display_score(score) {
-					var score_el = $('#score ul');
-					score_el.html("");
-					var render_score = function(idx) {
-						return '<li class="lh-copy pa3 ba bl-0 bt-0 br-0 ' + player_colors[i] + '">(' + player_type[i] + ') Player ' + (i + 1) + ': ' + score[i] + '</li>';
-					}
-					for(var i = 0; i < score.length; i++) {
-						score_el.append(render_score(i));
+			function display_dice(dice) {
+				for(var i = 0; i < dice.length; i++) {
+					var dice_el_str = '<div class="dice"></div';
+					var el = $('[data-id=' + i +'] .dice-count');
+					el.html("");
+					for(var j = 0; j < dice[i]; j++) {
+						el.append(dice_el_str);
 					}
 				}
+			}
 
-				function display_dice(dice) {
-					for(var i = 0; i < dice.length; i++) {
-						var dice_el_str = '<div class="dice"></div';
-						var el = $('[data-id=' + i +'] .dice-count');
-						el.html("");
-						for(var j = 0; j < dice[i]; j++) {
-							el.append(dice_el_str);
-						}
-					}
+			function update_stats(state) {
+				console.log(state);
+        var scores = state.score;
+				var max = -1;
+				for(var i = 0; i < scores.length; i++) {
+					if(max === -1 || scores[i] > scores[max]) {
+            max = i;
+          }
+				}
+        if(max < 2) {
+          ai_wins += 1;
+        }
+        else {
+          player_wins += 1;
+        }
+        win_percentage = player_wins / ai_wins;
+        player_score += scores[2];
+        $('#total-score').text(player_score);
+        $('#ai-wins').text(ai_wins);
+        $('#player-wins').text(player_wins);
+        $('#win-percentage').text(win_percentage);
+			}
+
+			function display_player_moves(moves) {
+				// Reset cards
+				$('#card-list article')
+					.toggleClass('grow', true)
+					.toggleClass('bg-white', true)
+					.toggleClass('bg-dark-gray', false);
+
+				for(var i = 0; i < moves.length; i++) {
+					$('#card-list article[data-id=' + moves[i] +']')
+						.toggleClass('grow')
+						.toggleClass('bg-white')
+						.addClass('bg-dark-gray');
+
+					$('#card-list article[data-id=' + moves[i] +'] h2')
+						.css('display', 'block');
+				}
+			}
+
+			function display_last_moves(moves) {
+				var render_player = function(idx) {
+					return '<div class="avatar ' + player_colors[i] +'">' + (i + 1) + '</div>';
 				}
 
-				function display_player_moves(moves) {
-					for(var i = 0; i < moves.length; i++) {
-
-						$('#card-list article[data-id=' + moves[i] +']')
-							.removeClass('grow')
-							.removeClass('bg-white')
-							.addClass('bg-dark-gray')
-							.css('pointer-events', 'none');
-
-						$('#card-list article[data-id=' + moves[i] +'] h2')
-							.css('display', 'block');
-					}
+				// Clear move list
+				for(var i = 0; i < 6; i++) {
+					$('[data-id=' + i +'] .move-list').html("");
 				}
 
-				function display_last_moves(moves) {
-					var render_player = function(idx) {
-						return '<div class="avatar ' + player_colors[i] +'">' + (i + 1) + '</div>';
-					}
-
-					// Clear move list
-					for(var i = 0; i < 6; i++) {
-						$('[data-id=' + i +'] .move-list').html("");
-					}
-
-					for(var i = 0; i < moves.length; i++) {
-						$('[data-id=' + moves[i] +'] .move-list').append(render_player(i));
-					}
+				for(var i = 0; i < moves.length; i++) {
+					$('[data-id=' + moves[i] +'] .move-list').append(render_player(i));
 				}
+			}
     })
 </script>
 </body>
