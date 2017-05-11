@@ -9,9 +9,10 @@
         }
 
         .gametile {
+					position: relative;
 					height: 100px;
-            margin-bottom: 1em;
-        }
+					margin-bottom: 1em;
+				}
 				
 				.dice {
 					display: inline-block;
@@ -19,6 +20,22 @@
 					height: 15px;
 					background-color: black;
 					margin: 5px;
+				}
+
+				.move-list {
+					position: absolute;
+					top: 0;
+					left: 0px;
+					height: 5px;
+					margin-top: 5px;
+				}
+
+				.move-list .avatar {
+					display: inline-block;
+					width: 15px;
+					height: 15px;
+					font-size: 0.75em;
+					color: #3e3e3e;
 				}
     </style>
 </head>
@@ -30,21 +47,27 @@
 		<h2>{{ animal }}</h2>
 		{% endfor %}
 	</div>
+
 	<div class="fl w-80 pa2">
 		<div class="mw9 center ph3-ns">
+
 			{% for column in game_tiles %}
 			<div class="cf ph2-ns" id="board">
+
 				{% set column_loop = loop %}
 				{% for animal in column %}
 				<div class="fl w-100 w-third-ns pa2">
 					<div class="gametile outline bg-white pv4" data-id="{{ ( column_loop.index - 1) * 3 + loop.index - 1}}">
+						<div class="move-list"></div>
 						{{ animal }}
 						<div class="dice-count"></div>
 					</div>
 				</div>
-					{% endfor %}
+				{% endfor %}
+
 			</div>
 			{% endfor %}
+
 		</div>
 	</div>
 	<div class="fl w-20 pa3" id="score">
@@ -61,17 +84,61 @@
             type: "POST",
             data: JSON.stringify({num_players: 2}),
             contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                state = data;
-								console.log(state);
-								display_score(state.score);
-								display_dice(state.dices_distribution);
-            }
-        });
+            success: state_handler
+				});
 				
         $(".gametile").on("click", function (event) {
-            alert($(this).attr("data-id"));
+					var card_id = parseInt($(this).attr("data-id"));
+					if(card_id < 0 || card_id > 5) {
+						alert("You can't play here!");
+						return;
+					}
+					if(state.player_moves.indexOf(card_id) >= 0) {
+						alert('You already played there!');
+						return;
+					}
+
+					$.ajax({
+						url: "/next_move",
+						type: "POST",
+						data: JSON.stringify({
+							session_id: state.session_id,
+							card_index: card_id
+						}),
+						contentType: "application/json; charset=utf-8",
+						success: state_handler,
+						error: function() {
+							alert("Game over!");
+						}
+					});
         });
+
+				function state_handler(data) {
+					var new_state = data;
+					display(new_state);
+					state = new_state;
+				}
+
+				function get_player_moves(old_cards, new_cards) {
+					var chosen_cards = [];
+					for(var player = 0; player < old_cards.length; player++) {
+						var card = old_cards[player].filter(function(e) { 
+							return new_cards[player].indexOf(e) < 0 ;
+						});
+						chosen_cards.push(parseInt(card));
+					}
+					return chosen_cards;
+				}
+
+				function display(new_state) {
+					if(state) { // Don't draw previous moves on first turn
+						var moves = get_player_moves(state.cards, new_state.cards);
+						display_last_moves(moves);
+					}
+					display_score(new_state.score);
+					display_dice(new_state.dices_distribution);
+					display_player_moves(new_state.player_moves);
+				}
 
 				function display_score(score) {
 					var score_el = $('#score ul');
@@ -85,10 +152,31 @@
 					for(var i = 0; i < dice.length; i++) {
 						var dice_el_str = '<div class="dice"></div';
 						var el = $('[data-id=' + i +'] .dice-count');
+						el.html("");
 						for(var j = 0; j < dice[i]; j++) {
 							el.append(dice_el_str);
 						}
-						console.log(el);
+					}
+				}
+
+				function display_player_moves(moves) {
+					for(var i = 0; i < moves.length; i++) {
+						$('[data-id=' + moves[i] +']').css('background-color', 'gray');
+					}
+				}
+
+				function display_last_moves(moves) {
+					var render_player = function(idx) {
+						return '<div class="avatar">' + (i + 1) + '</div>';
+					}
+
+					// Clear move list
+					for(var i = 0; i < 6; i++) {
+						$('[data-id=' + i +'] .move-list').html("");
+					}
+
+					for(var i = 0; i < moves.length; i++) {
+						$('[data-id=' + moves[i] +'] .move-list').append(render_player(i));
 					}
 				}
     })

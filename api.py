@@ -1,7 +1,11 @@
 from flask import Flask, jsonify, request, render_template
+from flask_socketio import SocketIO
 from web_game import WebGameEngine
 
 app = Flask(__name__, static_url_path='')
+app.config['SECRET_KEY'] = 'iGZhnHD+s6a}5q%y7w3q6$89JNFa25'
+socketio = SocketIO(app)
+
 game_engine = WebGameEngine()
 
 
@@ -41,11 +45,11 @@ def next_move():
     if not game_engine.has_next_move(session_id):
         return jsonify({'error': 'Game has ended'}), 400
 
-    session = game_engine.next_move(session_id, json_request['card_index'])
+    session = game_engine.next_move(session_id, int(json_request['card_index']))
 
     return jsonify(session.to_json())
 
 
 if __name__ == "__main__":
     app.debug = True
-    app.run(host='0.0.0.0')
+    socketio.run(app, host='0.0.0.0')
