@@ -1,59 +1,11 @@
 import random
 import copy
-import tensorflow as tf
 from game_logic import State, next_state
 import itertools
 import numpy as np
 
 EMBED_DIM = 30
 SAMPLES = 20
-
-class Evaluator:
-    def __init__(self):
-
-        learning_rate = 0.1
-
-        self.payouts = tf.placeholder("float", [None, 6]) # the payouts
-        self.cards = tf.placeholder("float", [None, 6]) # whether I still have the card
-
-        self.weights = {
-            'h1': tf.Variable(tf.random_uniform([12, EMBED_DIM],-0.1,0.1, dtype = "float")),
-            'h2': tf.Variable(tf.random_uniform([EMBED_DIM, 6],-0.1,0.1, dtype = "float"))
-            }
-        self.biases = {
-            'b1': tf.Variable(tf.random_uniform([EMBED_DIM],-0.1,0.1, dtype = "float")),
-            'b2': tf.Variable(tf.random_uniform([6],-0.1,0.1, dtype = "float")),
-            }
-
-        self.inputs = tf.concat([self.payouts, self.cards], axis=1)
-
-        self.play_prob = self.prediction()
-
-        self.actual_play_prob = tf.placeholder("float", [None, 6])
-
-        # Define loss and optimizer
-#        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.play_prob, self.actual_play_prob)))
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.play_prob, labels=self.actual_play_prob))
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.cost)
-
-        # Initializing the variables
-        self.init = tf.global_variables_initializer()
-
-    def prediction(self):
-        # Hidden layer with RELU activation
-        layer_1 = tf.add(tf.matmul(self.inputs, self.weights['h1']), self.biases['b1'])
-        layer_1 = tf.nn.relu(layer_1)
-
-        # Hidden layer with RELU activation
-        layer_2 = tf.add(tf.matmul(layer_1, self.weights['h2']), self.biases['b2'])
-
-        # Output layer with linear activation
-        out_layer = tf.nn.softmax(layer_2)
-
-        return out_layer
-
-    def evaluate(self):
-        return([1/6.0, 1/6.0, 1/6.0, 1/6.0, 1/6.0, 1/6.0])
 
 class AiPlayer(object):
     def __init__(self):
@@ -67,16 +19,8 @@ class AiPlayer(object):
         self.my_index = index
         self.total_players = total_players
 
-        self.evals = [Evaluator() for x in xrange(self.total_players)]
-
-        self.sess = tf.Session()
         self.last_inputs = [None for i in xrange(self.total_players)]
 
-        for x in self.evals:
-            self.sess.run(x.init)
-
-        # tensorflow state saver
-        self.saver = tf.train.Saver()
         self.count = 0
 
 #        self.saver.restore(self.sess, "model1.ckpt")
@@ -201,20 +145,7 @@ class AiPlayer(object):
         return bestCard
 
     def turn_ended(self, moves):
-        for i in xrange(self.total_players):
-            if i != self.my_index:
-
-                eval = self.evals[i]
-
-                play_prob = [0.0 for j in xrange(6)]
-                play_prob[moves[i]] = 1.0
-
-                play_prob = np.asarray(play_prob).reshape(1,6)
-                inputs = np.asarray(self.last_inputs[i]).reshape(1,len(self.last_inputs[i]))
-                
-                if self.learn_strat:
-                    self.sess.run([eval.optimizer, eval.cost], feed_dict={eval.inputs:inputs, eval.actual_play_prob:play_prob})
-                    print("Trained with {} {}".format(inputs,play_prob))
+        pass
 
     def round_ended(self):
 
