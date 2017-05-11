@@ -5,8 +5,8 @@ from game_logic import State, next_state
 import itertools
 import numpy as np
 
-EMBED_DIM = 10
-SAMPLES = 24
+EMBED_DIM = 30
+SAMPLES = 20
 
 class Evaluator:
     def __init__(self):
@@ -62,6 +62,7 @@ class AiPlayer(object):
     # init the AI player
     def init(self, index, total_players):
         print("Init")
+        self.learn_strat = False
         self.my_index = index
         self.total_players = total_players
 
@@ -80,13 +81,13 @@ class AiPlayer(object):
 #        self.saver.restore(self.sess, "model1.ckpt")
         print("Model restored.")
 
-    def valueFromScore(self, score):
-        if max(score) == score[self.my_index]:
-            ret = 1.0
-        else:
-            ret = 0.0
-
-        return ret
+    def value_from_score(self, score):
+        return score[self.my_index]
+#        if max(score) == score[self.my_index]:
+#            ret = 1.0
+#        else:
+#            ret = 0.0
+#        return ret
 
     def get_input_from_state(self, player_index, state):
         inputs = [0.0 for i in xrange(12)]
@@ -99,13 +100,29 @@ class AiPlayer(object):
 
     def get_play_probability(self, player_index, state):
 
-        eval = self.evals[player_index]
-
         inputs = self.get_input_from_state(player_index, state)
         inputs = np.asarray(inputs).reshape(1,12)
 
-        p0 = self.sess.run([eval.play_prob], feed_dict={eval.inputs:inputs})
-        prob = (p0[0].tolist()[0])
+        if self.learn_strat:
+            eval = self.evals[player_index]
+
+            p0 = self.sess.run([eval.play_prob], feed_dict={eval.inputs:inputs})
+            prob = (p0[0].tolist()[0])
+        else:
+        
+            payouts = [0.,0.,0.,0.,0.,0.]
+            for i in xrange(6):
+                payouts[i] = inputs[0, i + 6] * inputs[0, i]
+            
+            payouts[3] = payouts[3] * 2
+            payouts[4] = payouts[4] * 2
+            payouts[5] = payouts[5] * 2
+            
+            if player_index == 1: #TODO HACK HACK HACK
+                prob = [(1. if payouts[i] == max(payouts) else 0.) for i in xrange(6)]
+            else:
+                prob = [1.,1.,1.,1.,1.,1.]
+            
 
         sum = 0.0
 
@@ -143,7 +160,7 @@ class AiPlayer(object):
 
                     # play a move sample from what we think they will play
                     play_probability = self.get_play_probability(player, state)
-                    moves[player] = np.random.choice(xrange(6), 1, play_probability)[0]
+                    moves[player] = np.random.choice(xrange(6), 1, p = play_probability)[0]
 
             moves[self.my_index] = x
             state = next_state(state, moves)
@@ -168,18 +185,27 @@ class AiPlayer(object):
                 next_state = self.sample(next_state, strategy)
 
             # the value of the strategy starting by each move is a function of the score
-            strategy_value[strategy[0]] = strategy_value[strategy[0]] + self.valueFromScore(next_state.score)
+            strategy_value[strategy[0]] = strategy_value[strategy[0]] + self.value_from_score(next_state.score)
             strategy_value_count[strategy[0]] = strategy_value_count[strategy[0]] + 1
 
         bestValue = 0.0
         bestCard = cards_to_play[0]
 
+        sum = 0.0
         for x in xrange(6):
             if strategy_value_count[x] > 0:
                 strategy_value[x] = strategy_value[x] / strategy_value_count[x]
-            if strategy_value[x] > bestValue:
-                bestValue = strategy_value[x]
-                bestCard = x
+                sum += strategy_value[x]
+        
+        if (sum != 0.0):
+            for x in xrange(6):
+                strategy_value[x] = strategy_value[x] / sum
+        else:
+            for x in xrange(6):
+                strategy_value[x] = 1.0/len(cards_to_play) if x in cards_to_play else 0.0
+                
+        bestCard = np.random.choice(6, 1, p=strategy_value)[0]
+
 
         print("state {}".format(state))
         for i in xrange(self.total_players):
@@ -200,10 +226,10 @@ class AiPlayer(object):
 
                 play_prob = np.asarray(play_prob).reshape(1,6)
                 inputs = np.asarray(self.last_inputs[i]).reshape(1,len(self.last_inputs[i]))
-                self.sess.run([eval.optimizer, eval.cost], feed_dict={eval.inputs:inputs, eval.actual_play_prob:play_prob})
-                print("Trained with {} {}".format(inputs,play_prob))
-
-
+                
+                if self.learn_strat:
+                    self.sess.run([eval.optimizer, eval.cost], feed_dict={eval.inputs:inputs, eval.actual_play_prob:play_prob})
+                    print("Trained with {} {}".format(inputs,play_prob))
 
     def round_ended(self):
 

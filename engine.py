@@ -1,5 +1,5 @@
 from game_logic import State, next_state
-from random_player import Player, GreedyPlayer
+from random_player import Player, GreedyPlayer, GreedyBastardPlayer
 from ai_player import AiPlayer
 
 
@@ -52,9 +52,10 @@ if __name__ == '__main__':
     
     player1 = Player()
     player2 = GreedyPlayer()
-    player3 = AiPlayer()
+    player3 = GreedyBastardPlayer()
+    player4 = AiPlayer()
 
     engine = Engine()
-    ret = engine.start([player1, player2, player3])
+    ret = engine.start([player1, player2, player3, player4])
 
     #    State(2)
