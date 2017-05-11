@@ -6,7 +6,7 @@ import itertools
 import numpy as np
 
 EMBED_DIM = 10
-SAMPLES = 10
+SAMPLES = 24
 
 class Evaluator:
     def __init__(self):
