@@ -55,6 +55,6 @@ if __name__ == '__main__':
     player3 = AiPlayer()
 
     engine = Engine()
-    ret = engine.start([player2, player3])
+    ret = engine.start([player1, player2, player3])
 
     #    State(2)

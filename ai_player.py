@@ -11,7 +11,7 @@ SAMPLES = 24
 class Evaluator:
     def __init__(self):
 
-        learning_rate = 0.00001
+        learning_rate = 0.1
 
         self.payouts = tf.placeholder("float", [None, 6]) # the payouts
         self.cards = tf.placeholder("float", [None, 6]) # whether I still have the card
@@ -46,7 +46,6 @@ class Evaluator:
 
         # Hidden layer with RELU activation
         layer_2 = tf.add(tf.matmul(layer_1, self.weights['h2']), self.biases['b2'])
-        layer_2 = tf.nn.relu(layer_2)
 
         # Output layer with linear activation
         out_layer = tf.nn.softmax(layer_2)
@@ -183,7 +182,9 @@ class AiPlayer(object):
                 bestCard = x
 
         print("state {}".format(state))
-        print("AI believes player 0 would play with distribution {}".format(self.get_play_probability(0, state)))
+        for i in xrange(self.total_players):
+            if i != self.my_index:
+                print("AI believes player {} would play with distribution {}".format(i, self.get_play_probability(i, state)))
         print("AI playing card {}".format(bestCard))
 
         return bestCard
@@ -200,6 +201,9 @@ class AiPlayer(object):
                 play_prob = np.asarray(play_prob).reshape(1,6)
                 inputs = np.asarray(self.last_inputs[i]).reshape(1,len(self.last_inputs[i]))
                 self.sess.run([eval.optimizer, eval.cost], feed_dict={eval.inputs:inputs, eval.actual_play_prob:play_prob})
+                print("Trained with {} {}".format(inputs,play_prob))
+
+
 
     def round_ended(self):
 
