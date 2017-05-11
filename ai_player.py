@@ -61,6 +61,7 @@ class AiPlayer(object):
 
     # init the AI player
     def init(self, index, total_players):
+        print("Init")
         self.my_index = index
         self.total_players = total_players
 
@@ -71,6 +72,13 @@ class AiPlayer(object):
 
         for x in self.evals:
             self.sess.run(x.init)
+
+        # tensorflow state saver
+        self.saver = tf.train.Saver()
+        self.count = 0
+
+#        self.saver.restore(self.sess, "model1.ckpt")
+        print("Model restored.")
 
     def valueFromScore(self, score):
         if max(score) == score[self.my_index]:
@@ -100,11 +108,23 @@ class AiPlayer(object):
         prob = (p0[0].tolist()[0])
 
         sum = 0.0
+
+        # normalize over the legal inputs
         for i in xrange(6):
             if inputs[0][i]:
                 sum = sum + prob[i]
             else:
                 prob[i] = 0.0
+
+        if sum == 0.0:
+            # something went way weird. Normalize over all the legal moves
+            for i in xrange(6):
+                if inputs[0][i]:
+                    sum = sum + 1.0
+                    prob[i] = 1.0
+                else:
+                    prob[i] = 0.0
+
         for i in xrange(6):
             prob[i] = prob[i] / sum
 
@@ -180,4 +200,8 @@ class AiPlayer(object):
                 self.sess.run([eval.optimizer, eval.cost], feed_dict={eval.inputs:inputs, eval.actual_play_prob:play_prob})
 
     def round_ended(self):
-        pass
+
+        if self.count % 100 == 0:
+            save_path = self.saver.save(self.sess, "model" + str(self.count/100) + ".ckpt")
+            print("Model saved in file: %s" % save_path)
+        self.count = self.count + 1
