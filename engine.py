@@ -9,8 +9,8 @@ class Engine(object):
 
     def start(self, players):
 
-        totals = [0,0,0]
-        wins = [0,0,0]
+        totals = [0 for p in players]
+        wins = [0 for p in players]
 
         for player_index, player in enumerate(players):
             player.init(player_index, len(players))
@@ -38,7 +38,7 @@ class Engine(object):
             for player in players:
                 player.round_ended()
 
-            for x in xrange(3):
+            for x in xrange(len(players)):
                 totals[x] = totals[x] + state.score[x]
                 if state.score[x] == max(state.score):
                     wins[x] = wins[x] + 1
@@ -55,6 +55,6 @@ if __name__ == '__main__':
     player3 = AiPlayer()
 
     engine = Engine()
-    ret = engine.start([player1, player2, player3])
+    ret = engine.start([player2, player3])
 
     #    State(2)

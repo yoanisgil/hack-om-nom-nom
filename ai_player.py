@@ -11,18 +11,18 @@ SAMPLES = 24
 class Evaluator:
     def __init__(self):
 
-        learning_rate = 0.1
+        learning_rate = 0.00001
 
         self.payouts = tf.placeholder("float", [None, 6]) # the payouts
         self.cards = tf.placeholder("float", [None, 6]) # whether I still have the card
 
         self.weights = {
-            'h1': tf.Variable(tf.random_normal([12, EMBED_DIM])),
-            'h2': tf.Variable(tf.random_normal([EMBED_DIM, 6])),
+            'h1': tf.Variable(tf.random_uniform([12, EMBED_DIM],-0.1,0.1, dtype = "float")),
+            'h2': tf.Variable(tf.random_uniform([EMBED_DIM, 6],-0.1,0.1, dtype = "float"))
             }
         self.biases = {
-            'b1': tf.Variable(tf.random_normal([EMBED_DIM])),
-            'b2': tf.Variable(tf.random_normal([6])),
+            'b1': tf.Variable(tf.random_uniform([EMBED_DIM],-0.1,0.1, dtype = "float")),
+            'b2': tf.Variable(tf.random_uniform([6],-0.1,0.1, dtype = "float")),
             }
 
         self.inputs = tf.concat([self.payouts, self.cards], axis=1)
@@ -32,7 +32,8 @@ class Evaluator:
         self.actual_play_prob = tf.placeholder("float", [None, 6])
 
         # Define loss and optimizer
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.play_prob, self.actual_play_prob)))
+#        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.play_prob, self.actual_play_prob)))
+        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.play_prob, labels=self.actual_play_prob))
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.cost)
 
         # Initializing the variables
@@ -182,6 +183,7 @@ class AiPlayer(object):
                 bestCard = x
 
         print("state {}".format(state))
+        print("AI believes player 0 would play with distribution {}".format(self.get_play_probability(0, state)))
         print("AI playing card {}".format(bestCard))
 
         return bestCard
