@@ -83,7 +83,7 @@ def next_state(old_state, moves):
             if number_of_dices > 0:
                 score = 2 * number_of_dices + 1
 
-            dices_to_remove = number_of_dices
+            dices_to_remove = cards_distribution[i] * number_of_dices
 
         new_dices_distribution[i + 3] -= dices_to_remove
 
