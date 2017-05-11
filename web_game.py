@@ -2,6 +2,8 @@ import uuid
 import logging
 from game_logic import State, next_state
 from random_player import Player
+from ai_player import AiPlayer
+
 
 
 class WebGameSession(object):
@@ -10,8 +12,11 @@ class WebGameSession(object):
 
         # Last player is always the human player
         self.state = State(number_of_players + 1)
-        self.players = [Player()] * number_of_players
+        self.players = [AiPlayer()] * number_of_players
         self.player_moves = []
+    
+        for i in xrange(number_of_players):
+            self.players[i].init(i, number_of_players + 1)
 
     def to_json(self):
         return {
