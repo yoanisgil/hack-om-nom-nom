@@ -75,11 +75,21 @@
 					<h3>Score</h3>
 					<ul class="list pl0 measure center"></ul>
 				</div>
+				<a id="next-round" class="f6 link dim ba ph3 pv2 mb2 dib black" href="#0">Next Round</a>
 			</div>
+
 			<article class="fr pa3" data-name="slab-stat">
 				<dl class="dib mr5">
-					<dd class="f6 f5-ns b ml0">Total Score</dd>
-					<dd id="total-score" class="f3 f2-ns b ml0">0</dd>
+					<dd class="f6 f5-ns b ml0">P1 Total</dd>
+					<dd id="p1-score" class="f3 f2-ns b ml0">0</dd>
+				</dl>
+				<dl class="dib mr5">
+					<dd class="f6 f5-ns b ml0">P2 Total</dd>
+					<dd id="p2-score" class="f3 f2-ns b ml0">0</dd>
+				</dl>
+				<dl class="dib mr5">
+					<dd class="f6 f5-ns b ml0">P3 Total</dd>
+					<dd id="p3-score" class="f3 f2-ns b ml0">0</dd>
 				</dl>
 				<dl class="dib mr5">
 					<dd class="f6 f5-ns b ml0">Player Wins</dd>
@@ -114,7 +124,7 @@
 			var state = null;
 			var player_colors = [ 'bg-light-yellow', 'bg-green', 'bg-light-purple' ]
 			var player_type = [ 'AI', 'AI', 'Human' ]
-			var player_score = 0;
+			var total_scores = [0, 0, 0];
 			var player_wins = 0;
 			var ai_wins = 0;
 			start_game();
@@ -129,6 +139,15 @@
 				});
 			}
 
+			$("#next-round").on("click", function (event) {
+				event.preventDefault();
+				if(state.player_moves.length === 6) {
+					start_game();
+				}
+				else {
+					alert("Finish the round first...");
+				}
+			});
 			$("#card-list article").on("click", function (event) {
 				event.preventDefault();
 
@@ -168,9 +187,7 @@
 				display(new_state);
 				state = new_state;
 				if(state.player_moves.length == 6) {
-					alert("New Round!");
 					update_stats(state);
-					start_game();
 				}
 			}
 
@@ -178,7 +195,7 @@
 				var chosen_cards = [];
 				for(var player = 0; player < old_cards.length; player++) {
 					var card = old_cards[player].filter(function(e) {
-						return new_cards[player].indexOf(e) < 0 ;
+						return new_cards[player].indexOf(e) < 0;
 					});
 					chosen_cards.push(parseInt(card));
 				}
@@ -233,8 +250,10 @@
           player_wins += 1;
         }
         win_percentage = player_wins / (player_wins + ai_wins);
-        player_score += scores[2];
-        $('#total-score').text(player_score);
+				for(let i = 0; i < scores.length; i++) {
+					total_scores[i] += scores[i];
+					$('#p' + (i + 1) + '-score').text(total_scores[i]);
+				}
         $('#ai-wins').text(ai_wins);
         $('#player-wins').text(player_wins);
         $('#win-percentage').text(win_percentage.toFixed(2));
