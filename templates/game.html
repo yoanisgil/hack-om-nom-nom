@@ -23,6 +23,14 @@
 					margin: 5px;
 				}
 
+				.dice2 {
+					display: inline-block;
+					width: 15px;
+					height: 15px;
+					background-color: lightgray;
+					margin: 5px;
+				}
+
 				.move-list {
 					position: absolute;
 					top: 0;
@@ -208,7 +216,7 @@
 					display_last_moves(moves);
 				}
 				display_score(new_state.score);
-				display_dice(new_state.dices_distribution);
+				display_dice(new_state.dices_distribution, new_state.previous_dices_distribution );
 				display_player_moves(new_state.player_moves);
 			}
 
@@ -223,13 +231,17 @@
 				}
 			}
 
-			function display_dice(dice) {
+			function display_dice(dice, dice2) {
 				for(var i = 0; i < dice.length; i++) {
 					var dice_el_str = '<div class="dice"></div';
+					var dice_el_str2 = '<div class="dice2"></div';
 					var el = $('[data-id=' + i +'] .dice-count');
 					el.html("");
 					for(var j = 0; j < dice[i]; j++) {
 						el.append(dice_el_str);
+					}
+					for(var j = dice[i]; j < dice2[i]; j++) {
+						el.append(dice_el_str2);
 					}
 				}
 			}
