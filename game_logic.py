@@ -16,6 +16,7 @@ class State(object):
     def __init__(self, num_players):
         self.num_players = num_players
         self.dices_distribution = 9 * [0]
+        self.previous_dices_distribution = 9 * [0]
         self.cards = [range(0, 6)] * num_players
         self.score = [0] * num_players
 
@@ -25,9 +26,10 @@ class State(object):
             self.dices_distribution[i] = dices_count[i - 3]
 
     @staticmethod
-    def from__config(num_players, dices_distribution, cards=None, score=None):
+    def from__config(num_players, dices_distribution, previous_dices_distribution, cards=None, score=None):
         state = State(num_players)
         state.dices_distribution = dices_distribution
+        state.previous_dices_distribution = previous_dices_distribution
 
         if cards:
             state.cards = cards
@@ -93,4 +95,4 @@ def next_state(old_state, moves):
 
     new_cards = remove_cards(old_state.cards, moves)
 
-    return State.from__config(old_state.num_players, new_dices_distribution, cards=new_cards, score=new_score)
+    return State.from__config(old_state.num_players, new_dices_distribution, old_state.dices_distribution[:], cards=new_cards, score=new_score)

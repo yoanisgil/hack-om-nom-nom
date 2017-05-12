@@ -23,6 +23,7 @@ class WebGameSession(object):
             'session_id': self.session_id,
             'num_players': self.state.num_players,
             'dices_distribution': self.state.dices_distribution,
+            'previous_dices_distribution': self.state.previous_dices_distribution,
             'cards': self.state.cards,
             'score': self.state.score,
             'player_moves': self.player_moves
